@@ -17,6 +17,7 @@ import optimizers
 from policies import *
 import socket
 from shared_noise import *
+from utils import *
 
 @ray.remote
 class Worker(object):
@@ -40,10 +41,7 @@ class Worker(object):
         # from the shared noise table. 
         self.deltas = SharedNoiseTable(deltas, env_seed + 7)
         self.policy_params = policy_params
-        if policy_params['type'] == 'linear':
-            self.policy = LinearPolicy(policy_params)
-        else:
-            raise NotImplementedError
+        self.policy = load_class("policies", policy_params["class_name"])(policy_params)
             
         self.delta_std = delta_std
         self.rollout_length = rollout_length
@@ -53,7 +51,6 @@ class Worker(object):
         """ 
         Get current policy weights and current statistics of past states.
         """
-        assert self.policy_params['type'] == 'linear'
         return self.policy.get_weights_plus_stats()
     
 
@@ -194,12 +191,9 @@ class ARSLearner(object):
                                       delta_std=delta_std) for i in range(num_workers)]
 
 
-        # initialize policy 
-        if policy_params['type'] == 'linear':
-            self.policy = LinearPolicy(policy_params)
-            self.w_policy = self.policy.get_weights()
-        else:
-            raise NotImplementedError
+        # initialize policy
+        self.policy = load_class("policies", policy_params["class_name"])(policy_params)
+        self.w_policy = self.policy.get_weights()
             
         # initialize optimization algorithm
         self.optimizer = optimizers.SGD(self.w_policy, self.step_size)        
@@ -360,7 +354,7 @@ def run_ars(params):
     ac_dim = env.action_space.shape[0]
 
     # set policy parameters. Possible filters: 'MeanStdFilter' for v2, 'NoFilter' for v1.
-    policy_params={'type':'linear',
+    policy_params={'class_name':params['policy_name'],
                    'ob_filter':params['filter'],
                    'ob_dim':ob_dim,
                    'ac_dim':ac_dim}
@@ -400,7 +394,7 @@ if __name__ == '__main__':
     # for Humanoid-v1 used shift = 5
     parser.add_argument('--shift', type=float, default=0)
     parser.add_argument('--seed', type=int, default=237)
-    parser.add_argument('--policy_type', type=str, default='linear')
+    parser.add_argument('--policy_name', type=str, default='LinearPolicy')
     parser.add_argument('--dir_path', type=str, default='data')
 
     # for ARS V1 use filter = 'NoFilter'

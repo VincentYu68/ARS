@@ -55,4 +55,22 @@ class LinearPolicy(Policy):
         mu, std = self.observation_filter.get_stats()
         aux = np.asarray([self.weights, mu, std])
         return aux
-        
+
+
+class FeedForwardNNPolicy(Policy):
+    """
+    Feedforward neural network policy.
+    """
+
+    def __init__(self, policy_params):
+        Policy.__init__(self, policy_params)
+        self.weights = np.zeros((self.ac_dim, self.ob_dim), dtype=np.float64)
+
+    def act(self, ob):
+        ob = self.observation_filter(ob, update=self.update_filter)
+        return np.dot(self.weights, ob)
+
+    def get_weights_plus_stats(self):
+        mu, std = self.observation_filter.get_stats()
+        aux = np.asarray([self.weights, mu, std])
+        return aux

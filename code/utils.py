@@ -2,6 +2,8 @@
 # https://github.com/openai/evolution-strategies-starter.
 
 import numpy as np
+import sys
+import importlib
 
 def itergroups(items, group_size):
     assert group_size >= 1
@@ -26,3 +28,13 @@ def batched_weighted_sum(weights, vecs, batch_size):
                         np.asarray(batch_vecs, dtype=np.float64))
         num_items_summed += len(batch_weights)
     return total, num_items_summed
+
+
+def load_class(module_name, class_name): # both args are strings
+    try:
+        module = importlib.import_module(module_name)
+        class_ = getattr(module, class_name)
+    except:
+        print("Error in getting: ", module_name, " ", class_name)
+        assert(0)
+    return class_
