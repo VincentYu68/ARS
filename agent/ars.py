@@ -42,7 +42,7 @@ class Worker(object):
         self.deltas = SharedNoiseTable(deltas, env_seed + 7)
         self.policy_params = policy_params
         self.policy = load_class("policies", policy_params["class_name"])(policy_params)
-            
+
         self.delta_std = delta_std
         self.rollout_length = rollout_length
 
@@ -357,7 +357,8 @@ def run_ars(params):
     policy_params={'class_name':params['policy_name'],
                    'ob_filter':params['filter'],
                    'ob_dim':ob_dim,
-                   'ac_dim':ac_dim}
+                   'ac_dim':ac_dim,
+                   'hidden_layer_sizes':(64, 64)}
 
     ARS = ARSLearner(env_name=params['env_name'],
                      policy_params=policy_params,
