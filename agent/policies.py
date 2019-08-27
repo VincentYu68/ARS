@@ -70,17 +70,21 @@ class FeedForwardNNPolicy(Policy):
         self._weight_start_id = []
         self._weight_end_id = []
         self._layer_sizes = [self.ob_dim]
+        self.weights = np.array([])
         for l in range(len(self.hidden_layer_sizes)):
             self._weight_start_id.append(self._num_weights)
             self._num_weights += self._layer_sizes[-1] * self.hidden_layer_sizes[l]
             self._weight_end_id.append(self._num_weights)
             self._layer_sizes.append(self.hidden_layer_sizes[l])
+            self.weights = np.concatenate([self.weights, np.random.normal(0, 1.0, self._layer_sizes[-1] * self.hidden_layer_sizes[l])])
         self._weight_start_id.append(self._num_weights)
         self._num_weights += self._layer_sizes[-1] * self.ac_dim
         self._weight_end_id.append(self._num_weights)
         self._layer_sizes.append(self.ac_dim)
+        self.weights = np.concatenate(
+            [self.weights, np.random.normal(0, 0.01, self._layer_sizes[-1] * self.ac_dim)])
 
-        self.weights = np.zeros(self._num_weights, dtype=np.float64)
+        # self.weights = np.zeros(self._num_weights, dtype=np.float64)
 
     def act(self, ob):
         ob = self.observation_filter(ob, update=self.update_filter)
